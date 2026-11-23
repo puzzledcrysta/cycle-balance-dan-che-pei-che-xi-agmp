@@ -24,7 +24,7 @@ function filterTable() {
   const query = filter.value.trim().toLocaleLowerCase();
   const selected = rows.filter(row => {
     if (stage === 'reconcile' && differences.checked && row.code === 'MATCH') return false;
-    return !query || [row.key,row.id,row.line,row.code,settings.reasons[row.code],row.detail,row.note,row.kind]
+    return !query || [row.key,row.id,row.line,row.code,settings.reasons[row.code],row.detail,row.note,row.kind,row.status]
       .some(value => String(value ?? '').toLocaleLowerCase().includes(query));
   });
   byId('shown').textContent = `${selected.length} / ${rows.length}`;
@@ -150,6 +150,55 @@ async function render() {
         return button;
       }]];
       rows = runs;
+    } else if (stage === 'allocate') {
+      const board = await query(`/api/allocate/${id}`);
+      const remaining = Object.fromEntries(board.segments.map(item => [item.segment, item.remaining]));
+      const moves = row => {
+        const text = Object.entries(row.requested).map(([label, amount]) => {
+          const extra = label in remaining ? `（余${remaining[label]}）` : '';
+          return `${label} ${amount}→${row.allocated[label] ?? amount}${extra}`;
+        }).join('；');
+        return el('span', text || '—');
+      };
+      const act = row => {
+        const cell = el('div', undefined, 'actions');
+        const sign = el('button', '签核', 'btn');
+        sign.type = 'button';
+        sign.disabled = row.status !== '待签核';
+        sign.addEventListener('click', async () => {
+          sign.disabled = true;
+          try {
+            await query(`/api/allocate/${id}/${encodeURIComponent(row.district)}/sign`, {});
+            notice(`已签核 ${row.district}`);
+            await render();
+          } catch (error) {
+            notice(error.message, true);
+            if (error.status === 409) await render();
+            else sign.disabled = false;
+          }
+        });
+        const back = el('button', '退回', 'btn');
+        back.type = 'button';
+        back.disabled = row.status !== '已签核';
+        back.addEventListener('click', async () => {
+          const note = window.prompt(`退回 ${row.district} 的原因（可留空）`, '');
+          if (note === null) return;
+          back.disabled = true;
+          try {
+            await query(`/api/allocate/${id}/${encodeURIComponent(row.district)}/return`, {note});
+            notice(`已退回 ${row.district}，腾出运力已回补待签核单`);
+            await render();
+          } catch (error) {
+            notice(error.message, true);
+            if (error.status === 409) await render();
+            else back.disabled = false;
+          }
+        });
+        cell.append(sign, back);
+        return cell;
+      };
+      view = [key, ['缺车数', 'shortage', 'num'], ['状态', 'status'], ['共享路段 申请→核定', moves], ['缺口', 'unmet', 'num'], ['操作', act]];
+      rows = board.sheets.map(item => ({...item, key: item.district}));
     } else {
       const timeline = await query(`/api/review/${id}`);
       view = [['版本','version','num'], ['结论','decision'], ['复核意见','note'], ['登记 UTC','changed']];

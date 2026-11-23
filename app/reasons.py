@@ -9,6 +9,8 @@ REASONS = {
     'AMOUNT_DELTA': '复算与外部账计量不同', 'BOOK_CONFLICT': '独立账含重复业务键',
     'RUN_UNKNOWN': '没有此批次', 'DEMO_UNKNOWN': '没有此样例', 'STALE': '复核版本已过期',
     'REVIEW_NOTE': '有差异时须填写复核意见', 'REVIEW_DECISION': '复核结论无效',
+    'SHEET_UNKNOWN': '没有此配车单', 'SHEET_STATE': '配车单状态不允许此操作',
+    'SEGMENT_EXHAUSTED': '路段剩余容量不足',
 }
 
 REASONS.update({'CYCLE_STATION': '站点定义无效', 'CYCLE_ROAD': '车路定义无效', 'DATE': '日期格式无效', 'REV_BLOCKED': '较新来源尚未采信'})

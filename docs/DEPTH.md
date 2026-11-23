@@ -15,6 +15,7 @@
 | M5 运输清单 | 核对独立清单和各类差异 | `POST /api/reconcile` | `app/modules/reconcile/service.py` | `tests/test_reconcile.py` |
 | M6 配车批次 | 打开历史批次并对原文件复跑 | `POST /api/runs` | `app/modules/runs/service.py` | `tests/test_runs.py` |
 | M7 调度签核 | 登记复核结论并下载证据 | `POST /api/review/{run_id}` | `app/modules/review/decisions.py` | `tests/test_review.py` |
+| M8 配车签核 | 出配车单与缺车数，签核占用、退回回补 | `GET /api/allocate/{run_id}` | `app/modules/allocate/service.py` | `tests/test_allocate.py` |
 
 ## 陷阱登记
 
@@ -33,6 +34,9 @@
 | TRAP-17 | 旧版列名映射 | legacy.csv | `app/modules/contract/schema.py` | `tests/test_contract.py::test_legacy_aliased` |
 | TRAP-18 | 空文件、空白文件与仅表头 | 测试构造 | `app/modules/intake/service.py` | `tests/test_intake.py::test_empty_states` |
 | TRAP-26 | 陈旧复核版本拒绝 | 测试构造 | `app/modules/review/decisions.py` | `tests/test_review.py::test_stale` |
+| TRAP-27 | 两区同时签核超用路段容量 | 测试构造 | `app/modules/allocate/service.py` | `tests/test_allocate.py::test_concurrent_signs_never_overcommit` |
+| TRAP-28 | 签核重试重复占用运力 | 测试构造 | `app/modules/allocate/service.py` | `tests/test_allocate.py::test_retry_storm_counts_once` |
+| TRAP-29 | 退回运力未回补待签核单 | 测试构造 | `app/modules/allocate/service.py` | `tests/test_allocate.py::test_return_reallocates_freed_capacity_to_pending` |
 | TRAP-109 | reroutes greedy | cases.csv | `app/modules/domain/rule.py` | `tests/test_domain.py::test_reroutes_greedy` |
 | TRAP-110 | unknown station | cases.csv | `app/modules/domain/rule.py` | `tests/test_domain.py::test_unknown_station` |
 
